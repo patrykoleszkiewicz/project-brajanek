@@ -1,22 +1,22 @@
 #define SERVO 7
 
-#define MOT_BL_DIR 22
-#define MOT_BL_PWM 6
+#define MOT_BL_DIR  22
+#define MOT_BL_PWM  6
 #define MOT_BL_ENCA 18
 #define MOT_BL_ENCB 23
 
-#define MOT_BR_DIR 24
-#define MOT_BR_PWM 5
+#define MOT_BR_DIR  24
+#define MOT_BR_PWM  5
 #define MOT_BR_ENCA 21
 #define MOT_BR_ENCB 29
 
-#define MOT_FL_DIR 26
-#define MOT_FL_PWM 4
+#define MOT_FL_DIR  26
+#define MOT_FL_PWM  4
 #define MOT_FL_ENCA 19
 #define MOT_FL_ENCB 25
 
-#define MOT_FR_DIR 28
-#define MOT_FR_PWM 3
+#define MOT_FR_DIR  28
+#define MOT_FR_PWM  3
 #define MOT_FR_ENCA 20
 #define MOT_FR_ENCB 27
 
