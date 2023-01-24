@@ -1,86 +1,125 @@
 #include "Driver.hpp"
 
+#include <RF24.h>
+#include <SPI.h>
+
+#define CE 9
+#define CSN 10
+#define ERROR_LED 13
+
+#define STOP_TIMEOUT  500
+#define RADIO_TIMEOUT 100
+
+RF24 radio(CE, CSN);
+long radio_timer = 0;
+byte cstatus;
+// 0 - OK
+// 1 - NO CONNECTION
+const byte address[] = { 0xDE, 0xAD, 0x14, 0x51, 0xDE };
+
+struct DataSend
+{
+    uint16_t rpm1 = 0;
+    uint16_t rpm2 = 0;
+    uint16_t rpm3 = 0;
+    uint16_t rpm4 = 0;
+    uint8_t s1 = 0;
+    uint8_t s2 = 0;
+    uint8_t s3 = 0;
+    uint8_t s4 = 0;
+    uint8_t s5 = 0;
+    uint8_t s6 = 0;
+    uint8_t s7 = 0;
+    uint16_t bat = 0;
+};
+
+struct DataRecv
+{
+    int16_t throttle = 0;
+    int16_t steer = 0;
+    bool reverse = 0;
+    bool brakes;
+
+    uint8_t control_mode;
+    uint8_t drive_mode;
+    uint8_t steer_comp;
+    uint8_t motor_comp;
+};
+
+DataSend local_state;
+DataRecv remote_state;
+
+long timeoutStop;
+
 Driver driver;
 
-int throttle;
-int steer;
-
-unsigned long timeoutS;
-unsigned long timeoutT;
-unsigned long timeoutSend;
-
 unsigned long currMicros;
-unsigned long currMillis;
+unsigned long currentMillis;
 
 void setup()
 {
-    driver.init();
-    Serial.begin(9600);
-    Serial1.begin(9600);
+    pinMode(ERROR_LED, OUTPUT);
+    Serial.begin(115200);
 
-    //driver.testEngines();
+    if(radio.begin())
+    {
+        radio.openReadingPipe(0, address);
+        radio.setPALevel(RF24_PA_MAX);
+        radio.setDataRate(RF24_250KBPS);
+        radio.enableDynamicPayloads();
+        radio.enableAckPayload();
+        radio.startListening();
+    }
+    else
+    {
+        digitalWrite(ERROR_LED, HIGH);
+        while(1) {}
+    }
+
+    driver.init();
 }
 
 void loop()
 {
     currMicros = micros();
-    currMillis = millis();
+    currentMillis = millis();
 
-    if(Serial1.available() > 0)
+    if(radio.available())
     {
-        if(Serial1.read() == '_')
-        {
-            char tmp = waitChar();
-            switch(tmp)
-            {
-                case 'S':
-                    Serial1.read();
-                    steer = Serial1.parseInt();
-                    timeoutS = currMillis + 150;
-                    break;
-                case 'T':
-                    Serial1.read();
-                    Serial1.parseInt();
-                    Serial1.read();
-                    throttle = 800 - Serial1.parseInt();
-                    timeoutT = currMillis + 150;
-                    break;
-            }
-            //Serial.print('\n');
-        }
-        //Serial.println(throttle);
+        radio.read(&remote_state, sizeof(remote_state));
+        radio.writeAckPayload(0, &local_state, sizeof(local_state));
+
+        radio_timer = currentMillis;
+        timeoutStop = currentMillis;
+        cstatus = 0;
+    }
+    else if(currentMillis - radio_timer > RADIO_TIMEOUT)
+    {
+        radio_timer = currentMillis;
+        cstatus = 1;
+
+        radio.begin();
+        radio.openReadingPipe(0, address);
+        radio.setPALevel(RF24_PA_MAX);
+        radio.setDataRate(RF24_250KBPS);
+        radio.enableDynamicPayloads();
+        radio.enableAckPayload();
+        radio.startListening();
     }
 
-    if(timeoutS < currMillis)
+    if(currentMillis - timeoutStop > STOP_TIMEOUT)
     {
-        steer = 0;
-    }
-    if(timeoutT < currMillis)
-    {
-        throttle = 0;
+        //remote_state.throttle = 0;
     }
 
-    //driver.update(millis(), throttle, steer);
-    driver.update(currMillis, 500, 500);
+    digitalWrite(ERROR_LED, cstatus);
 
-    if(timeoutSend < currMillis)
-    {
-        timeoutSend = currMillis + 100;
-        Serial1.print("*Y");
-        Serial1.print(throttle + 1000);
-        Serial1.print("*");
-        Serial1.print("*D");
-        Serial1.print(steer + 1000);
-        Serial1.print("*");
-        //Serial.println(steer);
-    }
+    driver.update(currentMillis, (int)remote_state.throttle * 3, remote_state.steer);
+    //Serial.println(remote_state.throttle);
+    
+    digitalWrite(ERROR_LED, cstatus);
+    //driver.update(currentMillis, 500, 500);
 
     //Serial.print(" ");
-    Serial.println(micros() - currMicros);
-}
-
-char waitChar()
-{
-    while(!Serial1.available()) loop();
-    return Serial1.read();
+    //Serial.println(micros() - currMicros);
 }
