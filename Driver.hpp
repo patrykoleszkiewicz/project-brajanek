@@ -1,24 +1,26 @@
 #define SERVO 7
 
+#define MOT_FR_DIR  28
+#define MOT_FR_PWM  3
+#define MOT_FR_ENCA 21
+#define MOT_FR_ENCB 29
+
+#define MOT_FL_DIR  26
+#define MOT_FL_PWM  4
+#define MOT_FL_ENCA 20
+#define MOT_FL_ENCB 27
+
+#define MOT_BR_DIR  24
+#define MOT_BR_PWM  5
+#define MOT_BR_ENCA 19
+#define MOT_BR_ENCB 25
+
 #define MOT_BL_DIR  22
 #define MOT_BL_PWM  6
 #define MOT_BL_ENCA 18
 #define MOT_BL_ENCB 23
 
-#define MOT_BR_DIR  24
-#define MOT_BR_PWM  5
-#define MOT_BR_ENCA 21
-#define MOT_BR_ENCB 29
-
-#define MOT_FL_DIR  26
-#define MOT_FL_PWM  4
-#define MOT_FL_ENCA 19
-#define MOT_FL_ENCB 25
-
-#define MOT_FR_DIR  28
-#define MOT_FR_PWM  3
-#define MOT_FR_ENCA 20
-#define MOT_FR_ENCB 27
+#define SAFETY_PIN 12
 
 
 const int8_t STEER_TRIM = -4;
@@ -28,13 +30,45 @@ const uint8_t STEER_MIN = 50;
 const float WHEELBASE_LENGHT = 284;
 const float WHEELBASE_WIDTH = 267;
 
+volatile long pulsesFR;
+volatile long pulsesFL;
+volatile long pulsesBR;
+volatile long pulsesBL;
+
+double readingFR, readingFL, readingBR, readingBL;
+
+double outputFR, setPointFR;
+double outputFL, setPointFL;
+double outputBR, setPointBR;
+double outputBL, setPointBL;
+
+void blinkFR() {
+  ++pulsesFR;
+}
+void blinkFL() {
+  ++pulsesFL;
+}
+void blinkBR() {
+  ++pulsesBR;
+}
+void blinkBL() {
+  ++pulsesBL;
+}
+
 #include "Servo.h"
+#include <PID_v1.h>
+
+PID pidFR(&readingFR, &outputFR, &setPointFR, 1.0, 10.0, 0.0, DIRECT);
+PID pidFL(&readingFL, &outputFL, &setPointFL, 1.0, 10.0, 0.0, DIRECT);
+PID pidBR(&readingBR, &outputBR, &setPointBR, 1.0, 10.0, 0.0, DIRECT);
+PID pidBL(&readingBL, &outputBL, &setPointBL, 1.0, 10.0, 0.0, DIRECT);
 
 Servo turner;
 
 class Driver
 {
   public:
+
     void init()
     {
         pinMode(MOT_FR_DIR, OUTPUT);
@@ -57,12 +91,29 @@ class Driver
         pinMode(MOT_BL_ENCA, INPUT);
         pinMode(MOT_BL_ENCB, INPUT);
 
+        attachInterrupt(digitalPinToInterrupt(MOT_FR_ENCA), blinkFR, CHANGE);
+        attachInterrupt(digitalPinToInterrupt(MOT_FL_ENCA), blinkFL, CHANGE);
+        attachInterrupt(digitalPinToInterrupt(MOT_BR_ENCA), blinkBR, CHANGE);
+        attachInterrupt(digitalPinToInterrupt(MOT_BL_ENCA), blinkBL, CHANGE);
+
         turner.attach(SERVO);
         turner.write(90);
     }
 
     void update(unsigned long current_millis, int throttle, int steer)
     {
+        if(micros() - _encoderTimer > 42500)
+        {
+            readingFR = pulsesFR;
+            readingFL = pulsesFL;
+            readingBR = pulsesBR;
+            readingBL = pulsesBL;
+            pulsesFR = 0;
+            pulsesFL = 0;
+            pulsesBR = 0;
+            pulsesBL = 0;
+            _encoderTimer = micros();
+        }
         setSteer(current_millis, steer);
 
         setThrottle(current_millis, throttle);
@@ -71,6 +122,7 @@ class Driver
   private:
     unsigned long _throttle_timer;
     unsigned long _turner_timer;
+    unsigned long _encoderTimer;
 
     int _throttle = 0;
     bool _reverse = 0;
@@ -138,10 +190,10 @@ class Driver
     {
         if(abs(_turner_pos - 90) < 2)
         {
-            analogWrite(MOT_FR_PWM, _throttle);
-            analogWrite(MOT_FL_PWM, _throttle);
-            analogWrite(MOT_BR_PWM, _throttle);
-            analogWrite(MOT_BL_PWM, _throttle);
+            setPointFR = _throttle;
+            setPointFL = _throttle;
+            setPointBR = _throttle;
+            setPointBL = _throttle;
             return;
         }
 
@@ -158,15 +210,36 @@ class Driver
 
         float TR_max = max(max(TR_FR, TR_FL), max(TR_BR, TR_BL));
 
-        float throttle_FR = _throttle * (TR_FR / TR_max);
-        float throttle_FL = _throttle * (TR_FL / TR_max);
-        float throttle_BR = _throttle * (TR_BR / TR_max);
-        float throttle_BL = _throttle * (TR_BL / TR_max);
+        setPointFR = _throttle * (TR_FR / TR_max);
+        setPointFL = _throttle * (TR_FL / TR_max);
+        setPointBR = _throttle * (TR_BR / TR_max);
+        setPointBL = _throttle * (TR_BL / TR_max);
 
-        analogWrite(MOT_FR_PWM, abs(throttle_FR));
-        analogWrite(MOT_FL_PWM, abs(throttle_FL));
-        analogWrite(MOT_BR_PWM, abs(throttle_BR));
-        analogWrite(MOT_BL_PWM, abs(throttle_BL));
+        setMotorsSpeeds();
+    }
+
+    void setMotorsSpeeds()
+    {
+        if(digitalRead(SAFETY_PIN))
+        {
+            analogWrite(MOT_FR_PWM, 0);
+            analogWrite(MOT_FL_PWM, 0);
+            analogWrite(MOT_BR_PWM, 0);
+            analogWrite(MOT_BL_PWM, 0);
+            return;
+        }
+
+        pidFR.Compute();
+        analogWrite(MOT_FR_PWM, outputFR);
+
+        pidFL.Compute();
+        analogWrite(MOT_FL_PWM, outputFL);
+
+        pidBR.Compute();
+        analogWrite(MOT_BR_PWM, outputBR);
+
+        pidBL.Compute();
+        analogWrite(MOT_BL_PWM, outputBL);
     }
 
     void setSteer(unsigned long current_millis, int steer)
