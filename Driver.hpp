@@ -116,11 +116,10 @@ class Driver
         }
         setSteer(current_millis, steer);
 
-        setThrottle(current_millis, throttle);
+        setThrottle(throttle);
     }
 
   private:
-    unsigned long _throttle_timer;
     unsigned long _turner_timer;
     unsigned long _encoderTimer;
 
@@ -133,13 +132,8 @@ class Driver
 
     int16_t _turner_pos = 90;
 
-    void setThrottle(unsigned long current_millis, int throttle)
+    void setThrottle(int throttle)
     {
-        if(current_millis - _throttle_timer < _motor_comp)
-        {
-            return;
-        }
-        _throttle_timer = current_millis;
 
         bool reverse = throttle < 0;
         throttle = map(abs(throttle), 0, 1000, 0, 255);
