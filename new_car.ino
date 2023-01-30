@@ -18,9 +18,6 @@ void setup()
 void loop()
 {
     radio.update();
-    if(millis() - debugTimer > 200)
-    {
-        //Serial.println(receivedData.steer);
-        debugTimer = millis();
-    }
+    driver.update(millis(), -receivedData.throttle, receivedData.steer);
+    //Serial.println(receivedData.throttle);
 }
