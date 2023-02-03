@@ -157,8 +157,6 @@ class Driver
             pulsesBR = 0;
             pulsesBL = 0;
             _encoderTimer = micros();
-
-            //Serial.println(readingBR);
         }
         setSteer(current_millis, steer);
 
@@ -254,12 +252,6 @@ class Driver
         pidBL.Compute();
         analogWrite(MOT_BL_PWM, abs(outputBL));
         digitalWrite(MOT_BL_DIR, outputBL < 0);
-
-        Serial.print(setPointBR);
-        Serial.print(" ");
-        Serial.print(readingBR);
-        Serial.print(" ");
-        Serial.println(outputBR);
     }
 
     void setSteer(unsigned long current_millis, int steer)
@@ -285,6 +277,5 @@ class Driver
         }
 
         turner.write(constrain(_turner_pos, STEER_MIN, STEER_MAX) + STEER_TRIM);
-        //turner.write(90);
     }
 };
