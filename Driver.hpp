@@ -234,6 +234,11 @@ class Driver
             return;
         }
 
+        setPointFR = constrain(setPointFR, readingFR - 100, readingFR + 100);
+        setPointFL = constrain(setPointFL, readingFL - 100, readingFL + 100);
+        setPointBR = constrain(setPointBR, readingBR - 100, readingBR + 100);
+        setPointBL = constrain(setPointBL, readingBL - 100, readingBL + 100);
+
         pidFR.Compute();
         analogWrite(MOT_FR_PWM, abs(outputFR));
         digitalWrite(MOT_FR_DIR, outputFR < 0);
