@@ -18,6 +18,6 @@ void setup()
 void loop()
 {
     radio.update();
-    driver.update(millis(), -receivedData.throttle, receivedData.steer);
+    driver.update(millis(), receivedData.throttle, receivedData.steer);
     //Serial.println(receivedData.throttle);
 }
