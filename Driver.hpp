@@ -27,8 +27,8 @@ const int8_t STEER_TRIM = -4;
 const uint8_t STEER_MAX = 130;
 const uint8_t STEER_MIN = 50;
 
-const float WHEELBASE_LENGHT = 284;
-const float WHEELBASE_WIDTH = 267;
+const float WHEELBASE_LENGHT = 305;
+const float WHEELBASE_WIDTH = 257;
 
 volatile long pulsesFR;
 volatile long pulsesFL;
@@ -90,7 +90,7 @@ void blinkBL()
 #include "Servo.h"
 #include <PID_v1.h>
 
-float kP = 0.5, kI = 2.0, kD = 0.0;
+float kP = 1.0, kI = 4.0, kD = 0.0; //0.5 2.0 0.0
 
 PID pidFR(&readingFR, &outputFR, &setPointFR, kP, kI, kD, DIRECT);
 PID pidFL(&readingFL, &outputFL, &setPointFL, kP, kI, kD, DIRECT);
