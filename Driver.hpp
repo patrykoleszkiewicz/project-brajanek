@@ -22,6 +22,9 @@
 
 #define SAFETY_PIN 12
 
+#define STEER_UPDATE_INTERVAL_MS 10
+#define ENCODER_UPDATE_INTERVAL_US 42500
+
 const int8_t STEER_TRIM = -4;
 const uint8_t STEER_MAX = 130;
 const uint8_t STEER_MIN = 50;
@@ -153,10 +156,12 @@ class Driver
 
     void update(unsigned long current_millis, int throttle, int steer)
     {
-        setSteer(current_millis, steer);
+        setSteer(steer);
 
-        if(micros() - _encoderTimer > 42500)
+        if(micros() > _encoderTimer)
         {
+            _encoderTimer += ENCODER_UPDATE_INTERVAL_US;
+            
             readingFR = pulsesFR;
             readingFL = pulsesFL;
             readingBR = pulsesBR;
@@ -165,7 +170,6 @@ class Driver
             pulsesFL = 0;
             pulsesBR = 0;
             pulsesBL = 0;
-            _encoderTimer = micros();
 
             setThrottle(throttle);
 
@@ -178,14 +182,12 @@ class Driver
   private:
     Servo turner;
 
-    unsigned long _turner_timer;
+    unsigned long _turnerTimer;
     unsigned long _encoderTimer;
 
     int _throttle = 0;
     bool _reverse = 0;
     bool _brakes = false;
-
-    uint8_t _steer_comp = 10;
 
     int16_t _turner_pos = 90;
 
@@ -262,13 +264,13 @@ class Driver
         digitalWrite(MOT_BL_DIR, outputBL < 0);
     }
 
-    void setSteer(unsigned long current_millis, int steer)
+    void setSteer(int steer)
     {
-        if(current_millis - _turner_timer < _steer_comp)
+        if(millis() < _turnerTimer)
         {
             return;
         }
-        _turner_timer = current_millis;
+        _turnerTimer += STEER_UPDATE_INTERVAL_MS;
 
         uint8_t target_pos = map(steer, -1000, 1000, STEER_MIN, STEER_MAX);
 
