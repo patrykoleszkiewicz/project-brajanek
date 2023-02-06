@@ -21,6 +21,7 @@ struct DataPilot
 
 const byte addressIn[] = { 0xDE, 0xAD, 0x14, 0x51, 0xDE };
 const byte addressOut[] = { 0x14, 0x51, 0xDE, 0xDE, 0xAD };
+
 #define CE        9
 #define CSN       10
 #define ERROR_LED 13
@@ -34,6 +35,7 @@ DataPilot receivedData;
 
 const byte addressIn[] = { 0x14, 0x51, 0xDE, 0xDE, 0xAD };
 const byte addressOut[] = { 0xDE, 0xAD, 0x14, 0x51, 0xDE };
+
 #define CE        9
 #define CSN       10
 #define ERROR_LED 4
@@ -48,6 +50,7 @@ DataCar receivedData;
 class Radio
 {
   public:
+
     void init()
     {
         pinMode(ERROR_LED, OUTPUT);
@@ -65,6 +68,7 @@ class Radio
             while(1) {}
         }
     }
+
     void update()
     {
         if(_transmit)
@@ -91,6 +95,7 @@ class Radio
             }
         }
     }
+
   private:
     RF24 _radio;
     bool _transmit;

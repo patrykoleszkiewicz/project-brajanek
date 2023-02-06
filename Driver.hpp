@@ -22,7 +22,6 @@
 
 #define SAFETY_PIN 12
 
-
 const int8_t STEER_TRIM = -4;
 const uint8_t STEER_MAX = 130;
 const uint8_t STEER_MIN = 50;
@@ -53,6 +52,7 @@ void blinkFR()
         --pulsesFR;
     }
 }
+
 void blinkFL()
 {
     if(digitalRead(MOT_FL_ENCA) ^ digitalRead(MOT_FL_ENCB))
@@ -64,6 +64,7 @@ void blinkFL()
         ++pulsesFL;
     }
 }
+
 void blinkBR()
 {
     if(digitalRead(MOT_BR_ENCA) ^ digitalRead(MOT_BR_ENCB))
@@ -75,6 +76,7 @@ void blinkBR()
         --pulsesBR;
     }
 }
+
 void blinkBL()
 {
     if(digitalRead(MOT_BL_ENCA) ^ digitalRead(MOT_BL_ENCB))
