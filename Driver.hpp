@@ -2,23 +2,23 @@
 
 #define MOT_FR_DIR  28
 #define MOT_FR_PWM  3
-#define MOT_FR_ENCA 21
-#define MOT_FR_ENCB 29
+#define MOT_FR_ENCA 18
+#define MOT_FR_ENCB 23
 
 #define MOT_FL_DIR  26
 #define MOT_FL_PWM  4
-#define MOT_FL_ENCA 20
-#define MOT_FL_ENCB 27
+#define MOT_FL_ENCA 19
+#define MOT_FL_ENCB 25
 
 #define MOT_BR_DIR  24
 #define MOT_BR_PWM  5
-#define MOT_BR_ENCA 19
-#define MOT_BR_ENCB 25
+#define MOT_BR_ENCA 20
+#define MOT_BR_ENCB 27
 
 #define MOT_BL_DIR  22
 #define MOT_BL_PWM  6
-#define MOT_BL_ENCA 18
-#define MOT_BL_ENCB 23
+#define MOT_BL_ENCA 21
+#define MOT_BL_ENCB 29
 
 #define SAFETY_PIN 12
 
@@ -142,10 +142,17 @@ class Driver
         pidFL.SetOutputLimits(-255, 255);
         pidBR.SetOutputLimits(-255, 255);
         pidBL.SetOutputLimits(-255, 255);
+
+        pidFR.SetSampleTime(1);
+        pidFL.SetSampleTime(1);
+        pidBR.SetSampleTime(1);
+        pidBL.SetSampleTime(1);
     }
 
     void update(unsigned long current_millis, int throttle, int steer)
     {
+        setSteer(current_millis, steer);
+
         if(micros() - _encoderTimer > 42500)
         {
             readingFR = pulsesFR;
@@ -157,14 +164,13 @@ class Driver
             pulsesBR = 0;
             pulsesBL = 0;
             _encoderTimer = micros();
+
+            setThrottle(throttle);
+
+            digitalDifferential();
+
+            setMotorsSpeeds();
         }
-        setSteer(current_millis, steer);
-
-        setThrottle(throttle);
-
-        digitalDifferential();
-
-        setMotorsSpeeds();
     }
 
   private:
