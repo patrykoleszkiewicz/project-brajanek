@@ -156,12 +156,17 @@ class Driver
 
     void update(unsigned long current_millis, int throttle, int steer)
     {
-        setSteer(steer);
-
-        if(micros() > _encoderTimer)
+        unsigned long now = micros();
+        if(now - _turnerTimer >= STEER_UPDATE_INTERVAL_US)
         {
-            _encoderTimer += ENCODER_UPDATE_INTERVAL_US;
-            
+            _turnerTimer = now;
+            setSteer(steer);
+        }
+
+        if(now - _encoderTimer >= ENCODER_UPDATE_INTERVAL_US)
+        {
+            _encoderTimer = now;
+
             readingFR = pulsesFR;
             readingFL = pulsesFL;
             readingBR = pulsesBR;
@@ -266,12 +271,6 @@ class Driver
 
     void setSteer(int steer)
     {
-        if(millis() < _turnerTimer)
-        {
-            return;
-        }
-        _turnerTimer += STEER_UPDATE_INTERVAL_MS;
-
         uint8_t target_pos = map(steer, -1000, 1000, STEER_MIN, STEER_MAX);
 
         if(_turner_pos < target_pos)
