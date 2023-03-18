@@ -1,5 +1,3 @@
-#define PILOT
-
 #include "Radio.hpp"
 
 #define SAMPLE_COUNT 16

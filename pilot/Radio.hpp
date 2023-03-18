@@ -17,21 +17,6 @@ struct DataPilot
     bool brakes;
 };
 
-#if defined(CAR)
-
-const byte addressIn[] = { 0xDE, 0xAD, 0x14, 0x51, 0xDE };
-const byte addressOut[] = { 0x14, 0x51, 0xDE, 0xDE, 0xAD };
-#define CE        9
-#define CSN       10
-#define ERROR_LED 13
-
-#define STOP_TIMEOUT 500
-
-DataCar sentData;
-DataPilot receivedData;
-
-#else
-
 const byte addressIn[] = { 0x14, 0x51, 0xDE, 0xDE, 0xAD };
 const byte addressOut[] = { 0xDE, 0xAD, 0x14, 0x51, 0xDE };
 #define CE        9
@@ -40,8 +25,6 @@ const byte addressOut[] = { 0xDE, 0xAD, 0x14, 0x51, 0xDE };
 
 DataPilot sentData;
 DataCar receivedData;
-
-#endif
 
 #define RADIO_TIMEOUT 100
 
