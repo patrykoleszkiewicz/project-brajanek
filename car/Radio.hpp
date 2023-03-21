@@ -24,7 +24,7 @@ const byte addressOut[] = { 0x14, 0x51, 0xDE, 0xDE, 0xAD };
 #define CSN       10
 #define ERROR_LED 13
 
-#define STOP_TIMEOUT 500
+#define STOP_TIMEOUT 300
 
 DataCar sentData;
 DataPilot receivedData;
@@ -49,7 +49,7 @@ class Radio
         else
         {
             digitalWrite(ERROR_LED, HIGH);
-            while(1) {}
+            //while(1) {}
         }
     }
 
@@ -73,11 +73,14 @@ class Radio
             }
             else if(millis() - receiveTimeout > RADIO_TIMEOUT)
             {
-                _transmit = true;
-                receiveTimeout = millis();
                 digitalWrite(ERROR_LED, HIGH);
             }
         }
+    }
+
+    bool shouldStop()
+    {
+        return millis() - receiveTimeout > STOP_TIMEOUT;
     }
 
   private:

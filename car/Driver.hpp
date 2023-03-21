@@ -22,10 +22,12 @@
 
 #define SAFETY_PIN 12
 
-#define STEER_UPDATE_INTERVAL_US   10000
+#define STEER_UPDATE_INTERVAL_MS   10
 #define ENCODER_UPDATE_INTERVAL_US 42500
 
-const int8_t STEER_TRIM = -4;
+#define MAX_PULSES 255
+
+const int8_t STEER_TRIM = 5;
 const uint8_t STEER_MAX = 130;
 const uint8_t STEER_MIN = 50;
 
@@ -95,7 +97,7 @@ void blinkBL()
 #include "Servo.h"
 #include <PID_v1.h>
 
-float kP = 1.0, kI = 4.0, kD = 0.0;  //0.5 2.0 0.0
+float kP = 1.0, kI = 0.0, kD = 0.0;  //0.5 2.0 0.0
 
 PID pidFR(&readingFR, &outputFR, &setPointFR, kP, kI, kD, DIRECT);
 PID pidFL(&readingFL, &outputFL, &setPointFL, kP, kI, kD, DIRECT);
@@ -154,16 +156,13 @@ class Driver
         pidBL.SetSampleTime(1);
     }
 
-    void update(unsigned long current_millis, int throttle, int steer)
+    void update(bool brakes, int throttle, int steer)
     {
-        unsigned long now = micros();
-        if(now - _turnerTimer >= STEER_UPDATE_INTERVAL_US)
-        {
-            _turnerTimer = now;
-            setSteer(steer);
-        }
+        _brakes = brakes || !digitalRead(SAFETY_PIN);
+        setSteer(steer);
 
-        if(now - _encoderTimer >= ENCODER_UPDATE_INTERVAL_US)
+        unsigned long now = micros();
+        if(now - _encoderTimer > ENCODER_UPDATE_INTERVAL_US)
         {
             _encoderTimer = now;
 
@@ -199,16 +198,11 @@ class Driver
     void setThrottle(int throttle)
     {
         _throttle = throttle;
-
-        if(_brakes)
-        {
-            _throttle = 0;
-        }
     }
 
     void setMotorsSpeeds()
     {
-        if(!digitalRead(SAFETY_PIN))
+        if(_brakes)
         {
             analogWrite(MOT_FR_PWM, 0);
             analogWrite(MOT_FL_PWM, 0);
@@ -217,30 +211,41 @@ class Driver
             return;
         }
 
-        setPointFR = constrain(setPointFR, readingFR - 100, readingFR + 100);
-        setPointFL = constrain(setPointFL, readingFL - 100, readingFL + 100);
-        setPointBR = constrain(setPointBR, readingBR - 100, readingBR + 100);
-        setPointBL = constrain(setPointBL, readingBL - 100, readingBL + 100);
+        setPointFR = constrain(setPointFR, readingFR - 50, readingFR + 50);
+        setPointFL = constrain(setPointFL, readingFL - 50, readingFL + 50);
+        setPointBR = constrain(setPointBR, readingBR - 50, readingBR + 50);
+        setPointBL = constrain(setPointBL, readingBL - 50, readingBL + 50);
 
         pidFR.Compute();
+        outputFR = constrain(outputFR + setPointFR, -255, 255);
         analogWrite(MOT_FR_PWM, abs(outputFR));
         digitalWrite(MOT_FR_DIR, outputFR < 0);
 
         pidFL.Compute();
+        outputFL = constrain(outputFL + setPointFL, -255, 255);
         analogWrite(MOT_FL_PWM, abs(outputFL));
         digitalWrite(MOT_FL_DIR, outputFL < 0);
 
         pidBR.Compute();
+        outputBR = constrain(outputBR + setPointBR, -255, 255);
         analogWrite(MOT_BR_PWM, abs(outputBR));
         digitalWrite(MOT_BR_DIR, outputBR < 0);
 
         pidBL.Compute();
+        outputBL = constrain(outputBL + setPointBL, -255, 255);
         analogWrite(MOT_BL_PWM, abs(outputBL));
         digitalWrite(MOT_BL_DIR, outputBL < 0);
     }
 
     void setSteer(int steer)
     {
+        unsigned long now = millis();
+        if(now - _turnerTimer < STEER_UPDATE_INTERVAL_MS)
+        {
+            return;
+        }
+        _turnerTimer = now;
+
         uint8_t target_pos = map(steer, -1000, 1000, STEER_MIN, STEER_MAX);
 
         if(_turner_pos < target_pos)
