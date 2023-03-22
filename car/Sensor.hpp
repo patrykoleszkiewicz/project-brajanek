@@ -3,11 +3,10 @@
 #define SENSOR_L A0
 #define SENSOR_R A12
 
-#define SAMPLES_COUNT 5
+#define SERVO_L_DEFAULT 20
+#define SERVO_R_DEFAULT 160
 
-const byte servoPositions[] = {150};//{ 30, 60, 90, 120, 150 };
-
-const int positionsRange[] = { 0, sizeof(servoPositions) - 1 };
+#define SERVO_TURN_COEFF 2
 
 #include <Servo.h>
 
@@ -18,79 +17,40 @@ class SensorArray
     {
         servoL.attach(SERVO_L);
         servoR.attach(SERVO_R);
-
-        directionL = 1;
-        directionR = 1;
     }
 
-    void update()
+    void update(int wheelAngle)
     {
         unsigned long now = micros();
-        if(now - servoTimeout > 10000)
+        if(now - servoTimer > 10000)
         {
-            servoTimeout = now;
+            servoTimer = now;
 
             if(sideSelector)
             {
-                sampleBufferL[constrain(sampleIndexL, 0, SAMPLES_COUNT - 1)] = convertReading(analogRead(SENSOR_L));
-                sampleIndexL++;
+                sensorResultL = convertReading(analogRead(SENSOR_L));
                 analogRead(SENSOR_R);
             }
             else
             {
-                sampleBufferR[constrain(sampleIndexR, 0, SAMPLES_COUNT - 1)] = convertReading(analogRead(SENSOR_R));
-                sampleIndexR++;
+                sensorResultR = convertReading(analogRead(SENSOR_R));
                 analogRead(SENSOR_L);
             }
             sideSelector = !sideSelector;
-
-            if(sampleIndexL >= SAMPLES_COUNT)
-            {
-                sampleIndexL = 0;
-
-                unsigned long summy = 0;
-                for(int index = 0; index < SAMPLES_COUNT; ++index)
-                {
-                    summy += sampleBufferL[index];
-                }
-                sensorResultL[positionIndexL] = summy / SAMPLES_COUNT;
-
-                positionIndexL = constrain(positionIndexL + directionL, positionsRange[0], positionsRange[1]);
-                if(positionIndexL <= positionsRange[0] || positionIndexL >= positionsRange[1])
-                {
-                    directionL = -directionL;
-                }
-                servoL.write(servoPositions[positionIndexL]);
-            }
-
-            if(sampleIndexR >= SAMPLES_COUNT)
-            {
-                sampleIndexR = 0;
-
-                unsigned long sum = 0;
-                for(int index = 0; index < SAMPLES_COUNT; ++index)
-                {
-                    sum += sampleBufferR[index];
-                }
-                sensorResultR[positionIndexR] = sum / SAMPLES_COUNT;
-
-                positionIndexR = constrain(positionIndexR + directionR, positionsRange[0], positionsRange[1]);
-                if(positionIndexR <= positionsRange[0] || positionIndexR >= positionsRange[1])
-                {
-                    directionR = -directionR;
-                }
-                servoR.write(servoPositions[positionIndexR]);
-            }
         }
+
+        servoL.write(SERVO_L_DEFAULT + max(wheelAngle * SERVO_TURN_COEFF, 0));
+        servoR.write(SERVO_R_DEFAULT - max(-wheelAngle * SERVO_TURN_COEFF, 0));
     }
 
-    int getReading(bool side, int index)
+    unsigned getLeft()
     {
-        if(side)
-        {
-            return sensorResultL[index];
-        }
-        return sensorResultR[index];
+        return sensorResultL;
+    }
+
+    unsigned getRight()
+    {
+        return sensorResultR;
     }
 
   private:
@@ -99,17 +59,10 @@ class SensorArray
 
     bool sideSelector;
 
-    int positionIndexL, positionIndexR;
-    int directionL, directionR;
-    int sampleIndexL, sampleIndexR;
+    unsigned long servoTimer;
 
-    unsigned long servoTimeout;
-
-    unsigned int sensorResultL[sizeof(servoPositions)];
-    unsigned int sensorResultR[sizeof(servoPositions)];
-
-    unsigned int sampleBufferR[SAMPLES_COUNT];
-    unsigned int sampleBufferL[SAMPLES_COUNT];
+    unsigned sensorResultL;
+    unsigned sensorResultR;
 
     int convertReading(int value)
     {

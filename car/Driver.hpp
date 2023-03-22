@@ -30,6 +30,7 @@
 const int8_t STEER_TRIM = 5;
 const uint8_t STEER_MAX = 130;
 const uint8_t STEER_MIN = 50;
+const uint8_t STEER_MIDDLE = 90;
 
 const float WHEELBASE_LENGHT = 305;
 const float WHEELBASE_WIDTH = 257;
@@ -138,7 +139,7 @@ class Driver
         attachInterrupt(digitalPinToInterrupt(MOT_BL_ENCA), blinkBL, CHANGE);
 
         turner.attach(SERVO);
-        turner.write(90);
+        turner.write(STEER_MIDDLE);
 
         pidFR.SetMode(AUTOMATIC);
         pidFL.SetMode(AUTOMATIC);
@@ -183,6 +184,11 @@ class Driver
         }
     }
 
+    int getTurnerPos()
+    {
+        return _turner_pos;
+    }
+
   private:
     Servo turner;
 
@@ -193,7 +199,7 @@ class Driver
     bool _reverse = 0;
     bool _brakes = false;
 
-    int16_t _turner_pos = 90;
+    int16_t _turner_pos = STEER_MIDDLE;
 
     void setThrottle(int throttle)
     {
@@ -251,13 +257,13 @@ class Driver
         if(_turner_pos < target_pos)
         {
             ++_turner_pos;
-            if(_turner_pos < 90) _turner_pos += 2;
+            if(_turner_pos < STEER_MIDDLE) _turner_pos += 2;
         }
 
         if(_turner_pos > target_pos)
         {
             --_turner_pos;
-            if(_turner_pos > 90) _turner_pos -= 2;
+            if(_turner_pos > STEER_MIDDLE) _turner_pos -= 2;
         }
 
         turner.write(constrain(_turner_pos, STEER_MIN, STEER_MAX) + STEER_TRIM);
