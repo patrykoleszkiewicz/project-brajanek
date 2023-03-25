@@ -1,7 +1,7 @@
 #define LCD_ADDRESS     0x3F
 #define LCD_WIDTH       16
 #define LCD_HEIGHT      2
-#define LCD_INTERVAL_US 200000
+#define LCD_INTERVAL_US 150000
 
 #include <LCD_I2C.h>
 
@@ -25,10 +25,29 @@ class Display
         if(now - lcdTimer > LCD_INTERVAL_US)
         {
             lcdTimer = now;
-            for(int line = 0; line < LCD_HEIGHT; ++line)
+            lcd.clear();
+
+            if(controls.getHandbrake())
             {
-                lcd.setCursor(0, line);
-                lcd.print(lines[line]);
+                lcd.setCursor(0, 1);
+                lcd.print(F("(!)"));
+            }
+
+            switch(controls.getGear())
+            {
+                case 0:
+                case 2:
+                    lcd.setCursor(LCD_WIDTH - 2, 1);
+                    lcd.print(F("P"));
+                    break;
+                case 1:
+                    lcd.setCursor(LCD_WIDTH - 1, 1);
+                    lcd.print(F("D"));
+                    break;
+                case 3:
+                    lcd.setCursor(LCD_WIDTH - 3, 1);
+                    lcd.print(F("R"));
+                    break;
             }
         }
     }
@@ -36,6 +55,4 @@ class Display
   private:
     LCD_I2C lcd;
     long lcdTimer;
-
-    String lines[LCD_HEIGHT];
-};
+} display;

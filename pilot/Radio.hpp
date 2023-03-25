@@ -31,22 +31,21 @@ DataCar receivedData;
 class Radio
 {
   public:
-    void init()
+    bool init()
     {
         pinMode(ERROR_LED, OUTPUT);
 
-        if(_radio.begin(CE, CSN))
-        {
-            _radio.openWritingPipe(addressOut);
-            _radio.openReadingPipe(1, addressIn);
-            _radio.setPALevel(RF24_PA_MIN);
-            _radio.setDataRate(RF24_250KBPS);
-        }
-        else
+        if(!_radio.begin(CE, CSN))
         {
             digitalWrite(ERROR_LED, HIGH);
-            while(1) {}
+            return false;
         }
+
+        _radio.openWritingPipe(addressOut);
+        _radio.openReadingPipe(1, addressIn);
+        _radio.setPALevel(RF24_PA_MIN);
+        _radio.setDataRate(RF24_250KBPS);
+        return true;
     }
     void update()
     {
@@ -78,4 +77,4 @@ class Radio
     RF24 _radio;
     bool _transmit;
     unsigned long receiveTimeout;
-};
+} radio;

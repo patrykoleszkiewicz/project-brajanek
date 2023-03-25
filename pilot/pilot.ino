@@ -2,10 +2,6 @@
 #include "Controls.hpp"
 #include "Display.hpp"
 
-Radio radio;
-Controls controls;
-Display display;
-
 void setup()
 {
     controls.init();
@@ -17,8 +13,6 @@ void setup()
 void loop()
 {
     controls.update();
-    sentData.steer = controls.getAxis(0);
-    sentData.throttle = -controls.getAxis(1);
     radio.update();
     display.update();
 }
