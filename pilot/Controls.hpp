@@ -68,22 +68,6 @@ class Controls
             {
                 gear = 0;
             }
-
-            switch(gear)
-            {
-                case 0:
-                case 2:
-                    sentData.brakes = true;
-                    break;
-                case 1:
-                    sentData.brakes = false;
-                    sentData.reverse = false;
-                    break;
-                case 3:
-                    sentData.brakes = false;
-                    sentData.reverse = true;
-                    break;
-            }
         }
 
         if(axisData[1] > -SWITCH_THRESHOLD)
@@ -108,6 +92,24 @@ class Controls
                 handbrakeSwitch = false;
             }
         }
+
+        switch(gear)
+        {
+            case 0:
+            case 2:
+                sentData.brakes = true;
+                break;
+            case 1:
+                sentData.brakes = false;
+                sentData.reverse = false;
+                break;
+            case 3:
+                sentData.brakes = false;
+                sentData.reverse = true;
+                break;
+        }
+
+        sentData.brakes = sentData.brakes || handbrake;
     }
 
     int getAxis(int index)

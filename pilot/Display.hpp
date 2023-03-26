@@ -27,6 +27,9 @@ class Display
             lcdTimer = now;
             lcd.clear();
 
+            lcd.setCursor(0, 0);
+            lcd.print(controls.getAxis(2));
+
             if(controls.getHandbrake())
             {
                 lcd.setCursor(0, 1);
