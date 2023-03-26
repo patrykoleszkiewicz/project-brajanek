@@ -25,16 +25,30 @@ class Display
         if(now - lcdTimer > LCD_INTERVAL_US)
         {
             lcdTimer = now;
-            lcd.clear();
+            //lcd.clear();
 
             lcd.setCursor(0, 0);
-            lcd.print(controls.getAxis(2));
+            lcd.print(F("000 KPH"));
+
+            lcd.setCursor(LCD_WIDTH - 4, 0);
+            lcd.print("100%");
+
+            lcd.setCursor(4, 1);
+            lcd.print(F("(((<>)))"));
 
             if(controls.getHandbrake())
             {
                 lcd.setCursor(0, 1);
                 lcd.print(F("(!)"));
             }
+            else
+            {
+                lcd.setCursor(0, 1);
+                lcd.print(F("   "));
+            }
+
+            lcd.setCursor(LCD_WIDTH - 3, 1);
+            lcd.print(F("   "));
 
             switch(controls.getGear())
             {
