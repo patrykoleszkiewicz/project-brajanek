@@ -75,9 +75,6 @@ class Controls
             gearSwitch = false;
         }
 
-        sentData.steer = axisData[0];
-        sentData.throttle = axisData[2];
-
         if(now - handbrakeTimer >= BUTTON_DELAY_US)
         {
             if(!handbrakeSwitch && digitalRead(HANDBRAKE_PIN) == LOW)
@@ -110,6 +107,10 @@ class Controls
         }
 
         sentData.brakes = sentData.brakes || handbrake;
+
+        sentData.steer = axisData[0];
+        sentData.throttle = axisData[2];
+        if(sentData.reverse)sentData.throttle = -sentData.throttle;
     }
 
     int getAxis(int index)

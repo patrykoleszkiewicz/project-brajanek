@@ -7,6 +7,8 @@ struct DataCar
     uint16_t rpm2;
     uint16_t rpm3;
     uint16_t rpm4;
+    uint16_t sensorLeft;
+    uint16_t sensorRight;
 };
 
 struct DataPilot

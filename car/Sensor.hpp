@@ -1,7 +1,7 @@
 #define SERVO_L  8
 #define SERVO_R  2
-#define SENSOR_L A0
-#define SENSOR_R A12
+#define SENSOR_L A12
+#define SENSOR_R A15
 
 #define SERVO_L_DEFAULT 20
 #define SERVO_R_DEFAULT 160
@@ -22,7 +22,7 @@ class SensorArray
     void update(int wheelAngle)
     {
         unsigned long now = micros();
-        if(now - servoTimer > 10000)
+        if(now - servoTimer > 20000)
         {
             servoTimer = now;
 

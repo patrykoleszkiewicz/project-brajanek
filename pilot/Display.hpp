@@ -1,7 +1,7 @@
 #define LCD_ADDRESS     0x3F
 #define LCD_WIDTH       16
 #define LCD_HEIGHT      2
-#define LCD_INTERVAL_US 150000
+#define LCD_INTERVAL_US 300000
 
 #include <LCD_I2C.h>
 
@@ -25,10 +25,13 @@ class Display
         if(now - lcdTimer > LCD_INTERVAL_US)
         {
             lcdTimer = now;
-            //lcd.clear();
+            lcd.clear();
 
             lcd.setCursor(0, 0);
-            lcd.print(F("000 KPH"));
+            //lcd.print(F("000 KPH"));
+            lcd.print(receivedData.sensorLeft);
+            lcd.print(" ");
+            lcd.print(receivedData.sensorRight);
 
             lcd.setCursor(LCD_WIDTH - 4, 0);
             lcd.print("100%");
