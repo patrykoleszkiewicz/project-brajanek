@@ -106,10 +106,11 @@ class Controls
                 break;
         }
 
-        sentData.brakes = sentData.brakes || handbrake;
+        sentData.brakes = sentData.brakes || getHandbrake();
 
         sentData.steer = axisData[0];
         sentData.throttle = axisData[2];
+
         if(sentData.reverse)sentData.throttle = -sentData.throttle;
     }
 
