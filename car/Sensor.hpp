@@ -1,12 +1,12 @@
 #define SERVO_L  8
 #define SERVO_R  2
-#define SENSOR_L A12
+#define SENSOR_L A10
 #define SENSOR_R A15
 
-#define SERVO_L_DEFAULT 20
-#define SERVO_R_DEFAULT 160
+#define SERVO_L_DEFAULT 50
+#define SERVO_R_DEFAULT 150
 
-#define SERVO_TURN_COEFF 2
+#define SERVO_TURN_COEFF 1
 
 #include <Servo.h>
 
