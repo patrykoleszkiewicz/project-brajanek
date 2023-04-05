@@ -59,21 +59,7 @@ class Controls
             }
         }
 
-        if(!gearSwitch && axisData[1] < -SWITCH_THRESHOLD)
-        {
-            gearSwitch = true;
-            ++gear;
-
-            if(gear > 3)  //P - D - P - R
-            {
-                gear = 0;
-            }
-        }
-
-        if(axisData[1] > -SWITCH_THRESHOLD)
-        {
-            gearSwitch = false;
-        }
+        sentData.honk = axisData[1] < -SWITCH_THRESHOLD;
 
         if(now - handbrakeTimer >= BUTTON_DELAY_US)
         {
@@ -90,28 +76,17 @@ class Controls
             }
         }
 
-        switch(gear)
+        if(axisData[2] < 100)
         {
-            case 0:
-            case 2:
-                sentData.brakes = true;
-                break;
-            case 1:
-                sentData.brakes = false;
-                sentData.reverse = false;
-                break;
-            case 3:
-                sentData.brakes = false;
-                sentData.reverse = true;
-                break;
+            sentData.reverse = axisData[1] > SWITCH_THRESHOLD;
         }
 
-        sentData.brakes = sentData.brakes || getHandbrake();
+        sentData.brakes = getHandbrake();
 
         sentData.steer = axisData[0];
         sentData.throttle = axisData[2];
 
-        if(sentData.reverse)sentData.throttle = -sentData.throttle;
+        if(sentData.reverse) sentData.throttle = -sentData.throttle;
     }
 
     int getAxis(int index)
@@ -119,15 +94,11 @@ class Controls
         return axisData[index];
     }
 
-    int getGear()
-    {
-        return gear;
-    }
-
     bool getHandbrake()
     {
-        return handbrake || axisData[1] > SWITCH_THRESHOLD;
+        return handbrake;
     }
+
   private:
     unsigned long axisTimeout;
 
@@ -137,9 +108,6 @@ class Controls
     int axisReadout[axisCount][SAMPLE_COUNT];
 
     int axisData[axisCount];
-
-    bool gearSwitch;
-    int gear;
 
     bool handbrake;
     bool handbrakeSwitch;

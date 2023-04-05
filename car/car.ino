@@ -1,4 +1,5 @@
 #define SENSOR_THRESHOLD 800
+#define HONK_PIN         11
 
 #include "Driver.hpp"
 #include "Radio.hpp"
@@ -10,6 +11,7 @@ SensorArray sensors;
 
 void setup()
 {
+    pinMode(HONK_PIN, OUTPUT);
     Serial.begin(2000000);
     radio.init();
     driver.init();
@@ -35,4 +37,6 @@ void loop()
     }
 
     driver.update(receivedData.brakes || radio.shouldStop(), receivedData.throttle, receivedData.steer);
+
+    digitalWrite(HONK_PIN, receivedData.honk);
 }

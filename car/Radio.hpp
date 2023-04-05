@@ -17,6 +17,7 @@ struct DataPilot
     int16_t steer;
     bool reverse;
     bool brakes;
+    bool honk;
 };
 
 const byte addressIn[] = { 0xDE, 0xAD, 0x14, 0x51, 0xDE };

@@ -28,46 +28,24 @@ class Display
             lcd.clear();
 
             lcd.setCursor(0, 0);
-            //lcd.print(F("000 KPH"));
             lcd.print(receivedData.sensorLeft);
-            lcd.print(" ");
+
+            lcd.setCursor(5, 0);
             lcd.print(receivedData.sensorRight);
 
             lcd.setCursor(LCD_WIDTH - 4, 0);
             lcd.print("100%");
-
-            lcd.setCursor(4, 1);
-            lcd.print(F("(((<>)))"));
 
             if(controls.getHandbrake())
             {
                 lcd.setCursor(0, 1);
                 lcd.print(F("(!)"));
             }
-            else
-            {
-                lcd.setCursor(0, 1);
-                lcd.print(F("   "));
-            }
 
-            lcd.setCursor(LCD_WIDTH - 3, 1);
-            lcd.print(F("   "));
-
-            switch(controls.getGear())
+            if(sentData.reverse)
             {
-                case 0:
-                case 2:
-                    lcd.setCursor(LCD_WIDTH - 2, 1);
-                    lcd.print(F("P"));
-                    break;
-                case 1:
-                    lcd.setCursor(LCD_WIDTH - 1, 1);
-                    lcd.print(F("D"));
-                    break;
-                case 3:
-                    lcd.setCursor(LCD_WIDTH - 3, 1);
-                    lcd.print(F("R"));
-                    break;
+                lcd.setCursor(LCD_WIDTH - 1, 1);
+                lcd.print(F("R"));
             }
         }
     }
